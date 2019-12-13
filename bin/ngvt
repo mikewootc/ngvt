@@ -29,7 +29,8 @@ const versionTypeIndexes = {major: 0, minor: 1, patch: 2};
 //    },
 //}
 
-const myConfig = loadConfig('ngvt.config');
+const myConfig = loadConfig('ngvt_config.js');
+console.log('myConfig:', myConfig);
 
 async function getUserOptions() {
     let answers = await inquirer.prompt([
@@ -92,38 +93,35 @@ async function __main__() {
     let newVersionGitLog = '';
     let changedVersionFiles = [];
     let typeIndex = versionTypeIndexes[options.versionType];
-    options.modules.forEach(async (moduleName, ix, arr) => {
-        let module = versionConfig[moduleName];
-        let versionFilePath = myConfig.versionFile;
-        let versionFileText = fs.readFileSync(versionFilePath, 'utf8');
-        let lstVersionFileText = versionFileText.split(/\r?\n/);
+    let versionFilePath = myConfig.versionFile;
+    let versionFileText = fs.readFileSync(versionFilePath, 'utf8');
+    let lstVersionFileText = versionFileText.split(/\r?\n/);
 
-        lstVersionFileText.forEach((line, ix, arr) => {
-            if (line.search(/const VERSION = '\d+\.\d+\.\d+';/) >= 0) {
-                console.log(`Old version line of ${moduleName}: ${line}`);
-                let strVersion = line.match(/\d+\.\d+\.\d+/)[0];
-                let version = strVersion.split('.');
+    lstVersionFileText.forEach((line, ix, arr) => {
+        if (line.search(/const VERSION = '\d+\.\d+\.\d+';/) >= 0) {
+            console.log(`Old version line: ${line}`);
+            let strVersion = line.match(/\d+\.\d+\.\d+/)[0];
+            let version = strVersion.split('.');
 
-                version[typeIndex] = parseInt(version[typeIndex]) + 1;
-                if (typeIndex <= 1) {
-                    version[2] = 0; // 提升完高阶版本号后, 将低阶版本号置零.
-                }
-                if (typeIndex <= 0) {
-                    version[1] = 0; // 提升完高阶版本号后, 将低阶版本号置零.
-                }
-                let strNewVersion = version.join('.');
-                newVersionGitLog = newVersionGitLog + `New version: ${moduleName}: ${strNewVersion}${charReturn}\n`;
-                let newVersionLine = `const VERSION = '${strNewVersion}';`;
-                console.log(`New version line of ${moduleName}: ${newVersionLine}`);
-                arr[ix] = newVersionLine;
+            version[typeIndex] = parseInt(version[typeIndex]) + 1;
+            if (typeIndex <= 1) {
+                version[2] = 0; // 提升完高阶版本号后, 将低阶版本号置零.
             }
-        });
-
-        let newVersionFileText = lstVersionFileText.join('\n');
-        fs.writeFileSync(versionFilePath, newVersionFileText, 'utf8');
-
-        changedVersionFiles.push(versionFilePath);
+            if (typeIndex <= 0) {
+                version[1] = 0; // 提升完高阶版本号后, 将低阶版本号置零.
+            }
+            let strNewVersion = version.join('.');
+            newVersionGitLog = newVersionGitLog + `New version: ${strNewVersion}\n`;
+            let newVersionLine = `const VERSION = '${strNewVersion}';`;
+            console.log(`New version line of ${newVersionLine}`);
+            arr[ix] = newVersionLine;
+        }
     });
+
+    let newVersionFileText = lstVersionFileText.join('\n');
+    fs.writeFileSync(versionFilePath, newVersionFileText, 'utf8');
+
+    changedVersionFiles.push(versionFilePath);
 
     // 版本信息确认
     answers = await inquirer.prompt([
