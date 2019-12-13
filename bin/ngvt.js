@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 'use strict'
 
-// 用法: 先用git add添加好需要提交的文件, 然后在当前目录运行./version.js
+// 前提: 需要配置 ./ngvt_config.js:
+//     module.exports = {
+//         versionFile: './a.js',
+//     };
+// versionFile中指定的文件中, 加入形如:
+//     const VERSION = '1.2.3';
+// 的独立行.
+// 用法: 先用git add添加好需要提交的文件, 然后在当前目录运行: ngvt.js
 // 1. 选择版本号(按回车单选). 含义: major: 接口变更; minor: 增加功能; patch: 修改bug.
 //      ? Choose version type: (Use arrow keys)
 //        major 
